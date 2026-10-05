@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Georreferencia Distribuido - UPP</title>
+    
+    <!-- LEAFLET MAPS CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --bg-main: #0a0e17;
+            --panel-bg: rgba(18, 26, 43, 0.85);
+            --border-color: rgba(56, 189, 248, 0.25);
+            --accent-cyan: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* ENCABEZADO INSTITUCIONAL */
+        header {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 30px;
+            backdrop-filter: blur(12px);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header-title h1 {
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .header-title h2 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .team-badge {
+            text-align: right;
+            border-left: 2px solid var(--accent-cyan);
+            padding-left: 15px;
+        }
+
+        .team-badge .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .team-badge .names {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        /* GRID PRINCIPAL (3 COLUMNAS) */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        /* MAPA INTERACTIVO */
+        #map {
+            width: 100%;
+            height: 180px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            background: #111;
+            z-index: 1;
+        }
+
+        /* ANIMACIÓN DE CLIMA RADAR */
+        .weather-visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            margin-bottom: 15px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .radar-circle {
+            width: 70px;
+            height: 70px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 50%;
+            position: absolute;
+            animation: radarPulse 2.5s infinite ease-out;
+            opacity: 0;
+        }
+
+        .radar-circle:nth-child(2) { animation-delay: 0.8s; }
+        .radar-circle:nth-child(3) { animation-delay: 1.6s; }
+
+        .weather-orb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-cyan);
+            z-index: 2;
+        }
+
+        @keyframes radarPulse {
+            0% { transform: scale(0.1); opacity: 0.9; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        /* TABLAS DE DATOS */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* CONTROL DE VOZ Y BOTÓN */
+        .voice-control {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .btn-voice {
+            width: 100%;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border: 1px solid var(--accent-cyan);
+            color: #ffffff;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-voice:hover {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* CONSOLA DE ESTADO */
+        .console-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            width: fit-content;
+        }
+
+        .status-pill.idle { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
+        .status-pill.success { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .status-pill.error { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+        .log-text {
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ENCABEZADO INSTITUCIONAL -->
+        <header>
+            <div class="header-title">
+                <h1>Seguridad Informática - Examen Parcial 1</h1>
+                <h2>Universidad Politécnica de Pachuca</h2>
+            </div>
+            <div class="team-badge">
+                <div class="label">Integrantes del Proyecto</div>
+                <div class="names">Vanesa Galicia Camargo<br>Roxana Peñia Zamora</div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD GRID -->
+        <div class="dashboard-grid">
+            
+            <!-- PANEL 1: GEOLOCALIZACIÓN Y MAPA -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Geolocalización GPS</span>
+                    <span style="font-size: 0.7rem; color: var(--accent-cyan); font-family: monospace;">CARTODB DARK</span>
+                </div>
+
+                <!-- CONTENEDOR DEL MAPA -->
+                <div id="map"></div>
+
+                <!-- TABLA DE DETALLES DE UBICACIÓN -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Detalle de Red</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Coordenadas</td>
+                            <td id="val-coordenadas">Obteniendo GPS...</td>
+                        </tr>
+                        <tr>
+                            <td>Colonia / Zona</td>
+                            <td id="val-colonia">Buscando...</td>
+                        </tr>
+                        <tr>
+                            <td>Municipio</td>
+                            <td id="val-municipio">Buscando...</td>
+                        </tr>
+                        <tr>
+                            <td>Estado / País</td>
+                            <td id="val-estado">Buscando...</td>
+                        </tr>
+                        <tr>
+                            <td>Código Postal</td>
+                            <td id="val-cp">Buscando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PANEL 2: TELEMETRÍA AMBIENTAL -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Telemetría Ambiental</span>
+                    <span style="font-size: 0.7rem; color: var(--accent-cyan); font-family: monospace;">OPEN-METEO API</span>
+                </div>
+
+                <!-- ANIMACIÓN RADAR -->
+                <div class="weather-visualizer">
+                    <div class="radar-circle"></div>
+                    <div class="radar-circle"></div>
+                    <div class="radar-circle"></div>
+                    <div class="weather-orb"></div>
+                </div>
+
+                <!-- TABLA DE CLIMA -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Medición Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Temperatura</td>
+                            <td id="val-temp">-- °C</td>
+                        </tr>
+                        <tr>
+                            <td>Humedad Relativa</td>
+                            <td id="val-humedad">-- %</td>
+                        </tr>
+                        <tr>
+                            <td>Velocidad Viento</td>
+                            <td id="val-viento">-- km/h</td>
+                        </tr>
+                        <tr>
+                            <td>Fecha / Hora</td>
+                            <td id="val-fechahora">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PANEL 3: ALMACENAMIENTO Y RECONOCIMIENTO DE VOZ -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Control Distribución</span>
+                    <span style="font-size: 0.7rem; color: var(--accent-green); font-family: monospace;">AZURE VM CLOUD</span>
+                </div>
+
+                <!-- TABLA DE NODOS -->
+                <table class="data-table" style="margin-bottom: 15px;">
+                    <thead>
+                        <tr>
+                            <th>Nodo</th>
+                            <th>Sistema / BD</th>
+                            <th>Puerto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Servidor 1</td>
+                            <td>Windows / SQL Server</td>
+                            <td>1433</td>
+                        </tr>
+                        <tr>
+                            <td>Servidor 2</td>
+                            <td>Ubuntu / PostgreSQL</td>
+                            <td>5432</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- CONTROL DE VOZ -->
+                <div class="voice-control">
+                    <button id="btnVoz" class="btn-voice">Capturar Comando de Voz</button>
+
+                    <div class="console-box">
+                        <span id="statusPill" class="status-pill idle">Sistema en Espera</span>
+                        <div id="logComando" class="log-text">Presione el botón para dictar instrucción...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LEAFLET MAPS JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- LÓGICA COMPLETA DE APLICACIÓN -->
+    <script>
+        let map, marker;
+
+        let datosClima = {
+            usuario: 'vanesa_roxana',
+            nombre: 'Vanesa',
+            paterno: 'Galicia',
+            materno: 'Camargo',
+            estado: 'Hidalgo',
+            municipio: 'Pachuca de Soto',
+            latitud: 20.116541,
+            longitud: -98.741321,
+            temperatura: 0,
+            humedad: 0,
+            viento: '0 km/h'
+        };
+
+        // Inicializar Mapa estilo Oscuro (CartoDB Dark Matter)
+        function initMap(lat, lon) {
+            map = L.map('map').setView([lat, lon], 14);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                maxZoom: 19
+            }).addTo(map);
+
+            marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup('Ubicación de Transmisión')
+                .openPopup();
+        }
+
+        // Obtener Geolocalización GPS y Datos Nominatim + Open-Meteo
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            datosClima.latitud = pos.coords.latitude;
+            datosClima.longitud = pos.coords.longitude;
+
+            document.getElementById('val-coordenadas').innerText = `${datosClima.latitud.toFixed(4)}, ${datosClima.longitud.toFixed(4)}`;
+
+            // Inicializar el mapa interactivo
+            initMap(datosClima.latitud, datosClima.longitud);
+
+            // 1. Geocodificación Inversa (Detalles de Dirección Exacta)
+            try {
+                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${datosClima.latitud}&lon=${datosClima.longitud}`);
+                const geoData = await geoRes.json();
+                const addr = geoData.address || {};
+
+                datosClima.municipio = addr.city || addr.town || addr.suburb || 'Pachuca de Soto';
+                datosClima.estado = addr.state || 'Hidalgo';
+
+                document.getElementById('val-colonia').innerText = addr.neighbourhood || addr.suburb || addr.residential || 'Zona Detectada';
+                document.getElementById('val-municipio').innerText = datosClima.municipio;
+                document.getElementById('val-estado').innerText = `${datosClima.estado}, ${addr.country_code ? addr.country_code.toUpperCase() : 'MX'}`;
+                document.getElementById('val-cp').innerText = addr.postcode || 'C.P. Detectado';
+            } catch (e) {
+                document.getElementById('val-municipio').innerText = datosClima.municipio;
+                document.getElementById('val-estado').innerText = datosClima.estado;
+            }
+
+            // 2. API Clima Open-Meteo
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${datosClima.latitud}&longitude=${datosClima.longitud}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`);
+                const data = await res.json();
+
+                datosClima.temperatura = data.current.temperature_2m;
+                datosClima.humedad = data.current.relative_humidity_2m;
+                datosClima.viento = `${data.current.wind_speed_10m} km/h`;
+
+                document.getElementById('val-temp').innerText = `${datosClima.temperatura} °C`;
+                document.getElementById('val-humedad').innerText = `${datosClima.humedad} %`;
+                document.getElementById('val-viento').innerText = datosClima.viento;
+                document.getElementById('val-fechahora').innerText = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            } catch (e) {
+                document.getElementById('val-temp').innerText = "Error API";
+            }
+        }, (err) => {
+            document.getElementById('val-coordenadas').innerText = "Acceso a GPS Denegado";
+            // Mapa por defecto en Pachuca
+            initMap(20.116541, -98.741321);
+        });
+
+        const btnVoz = document.getElementById('btnVoz');
+        const statusPill = document.getElementById('statusPill');
+        const logComando = document.getElementById('logComando');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'es-MX';
+
+            btnVoz.addEventListener('click', () => {
+                recognition.start();
+                statusPill.className = "status-pill idle";
+                statusPill.innerText = "Escuchando...";
+                logComando.innerText = "Sintonizando micrófono...";
+            });
+
+            recognition.onresult = (event) => {
+                const comando = event.results[0][0].transcript;
+                logComando.innerText = `Comando recibido: "${comando}"`;
+                procesarComando(comando);
+            };
+
+            recognition.onerror = () => {
+                statusPill.className = "status-pill error";
+                statusPill.innerText = "Error de Entrada";
+                logComando.innerText = "No se detectó señal de audio clara.";
+            };
+        } else {
+            alert("Navegador no compatible. Utilice Google Chrome.");
+        }
+
+        // Procesar Comando y POST a Backend
+        async function procesarComando(texto) {
+            let endpoint = '';
+            const t = texto.toLowerCase();
+
+            if (t.includes('1') || t.includes('uno') || t.includes('windows') || t.includes('servidor 1') || t.includes('server 1')) {
+                endpoint = '/api/guardar/windows';
+            } else if (t.includes('2') || t.includes('dos') || t.includes('linux') || t.includes('ubuntu') || t.includes('servidor 2') || t.includes('server 2')) {
+                endpoint = '/api/guardar/ubuntu';
+            } else {
+                statusPill.className = "status-pill error";
+                statusPill.innerText = "Comando Desconocido";
+                logComando.innerText = `Instrucción no válida: "${texto}". Ordene 'Guardar en servidor uno' o 'Guardar en servidor dos'.`;
+                return;
+            }
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosClima)
+                });
+
+                const result = await res.json();
+                if (result.status === 'success') {
+                    statusPill.className = "status-pill success";
+                    statusPill.innerText = "Transacción Exitosa";
+                    logComando.innerText = `Registro almacenado correctamente en: ${result.server}`;
+                } else {
+                    statusPill.className = "status-pill error";
+                    statusPill.innerText = "Fallo en BD";
+                    logComando.innerText = `Error reportado por el servidor: ${result.error || 'Sin conexión'}`;
+                }
+            } catch (err) {
+                statusPill.className = "status-pill error";
+                statusPill.innerText = "Error de Red";
+                logComando.innerText = "Imposible conectar con el servicio Backend local.";
+            }
+        }
+    </script>
+</body>
+</html>
