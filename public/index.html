@@ -4,442 +4,777 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Georreferencia Distribuido - UPP</title>
-    
-    <!-- LEAFLET MAPS CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <style>
         :root {
-            --bg-main: #0a0e17;
-            --panel-bg: rgba(18, 26, 43, 0.85);
-            --border-color: rgba(56, 189, 248, 0.25);
-            --accent-cyan: #38bdf8;
-            --accent-green: #22c55e;
-            --accent-red: #ef4444;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --surface-muted: #eef4f8;
+            --border: #d7e1ea;
+            --text: #17212b;
+            --muted: #617080;
+            --teal: #0f8b8d;
+            --indigo: #4059ad;
+            --amber: #f2a541;
+            --rose: #d1495b;
+            --green: #218c74;
+            --shadow: 0 18px 45px rgba(23, 33, 43, 0.11);
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html {
+            overflow-x: hidden;
         }
 
         body {
-            background-color: var(--bg-main);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
-            color: var(--text-primary);
+            margin: 0;
             min-height: 100vh;
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow-x: hidden;
+            background:
+                linear-gradient(180deg, rgba(64, 89, 173, 0.08), transparent 320px),
+                var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
         }
 
-        /* ENCABEZADO INSTITUCIONAL */
-        header {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px 30px;
-            backdrop-filter: blur(12px);
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        .app-shell {
+            width: min(1420px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 38px;
         }
 
-        .header-title h1 {
-            font-size: 1.4rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--accent-cyan);
-            font-weight: 700;
-        }
-
-        .header-title h2 {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            font-weight: 400;
-        }
-
-        .team-badge {
-            text-align: right;
-            border-left: 2px solid var(--accent-cyan);
-            padding-left: 15px;
-        }
-
-        .team-badge .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-        }
-
-        .team-badge .names {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-top: 2px;
-        }
-
-        /* GRID PRINCIPAL (3 COLUMNAS) */
-        .dashboard-grid {
+        .topbar {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 18px;
+            align-items: center;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
         }
 
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+            color: var(--teal);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
-        @media (max-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
+        .topbar h1 {
+            margin: 0;
+            color: var(--text);
+            font-size: clamp(1.45rem, 2.6vw, 2.25rem);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.96rem;
+        }
+
+        .team-card {
+            min-width: 250px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-muted);
+        }
+
+        .team-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .team-card strong {
+            display: block;
+            margin-top: 6px;
+            color: var(--text);
+            font-size: 0.92rem;
+            line-height: 1.35;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+            gap: 18px;
+            min-width: 0;
         }
 
         .panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
+            min-width: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
         }
 
         .panel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            gap: 14px;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
         }
 
         .panel-title {
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent-cyan);
-            font-weight: 600;
-        }
-
-        /* MAPA INTERACTIVO */
-        #map {
-            width: 100%;
-            height: 180px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 15px;
-            background: #111;
-            z-index: 1;
-        }
-
-        /* ANIMACIÓN DE CLIMA RADAR */
-        .weather-visualizer {
             display: flex;
             align-items: center;
-            justify-content: center;
-            height: 100px;
-            margin-bottom: 15px;
-            position: relative;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
+            gap: 10px;
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .panel-title svg {
+            width: 19px;
+            height: 19px;
+            color: var(--teal);
+        }
+
+        .panel-body {
+            padding: 18px;
+        }
+
+        .map-panel {
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .radar-circle {
-            width: 70px;
-            height: 70px;
-            border: 2px solid var(--accent-cyan);
-            border-radius: 50%;
-            position: absolute;
-            animation: radarPulse 2.5s infinite ease-out;
-            opacity: 0;
-        }
-
-        .radar-circle:nth-child(2) { animation-delay: 0.8s; }
-        .radar-circle:nth-child(3) { animation-delay: 1.6s; }
-
-        .weather-orb {
-            width: 20px;
-            height: 20px;
-            background: var(--accent-cyan);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--accent-cyan);
-            z-index: 2;
-        }
-
-        @keyframes radarPulse {
-            0% { transform: scale(0.1); opacity: 0.9; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-
-        /* TABLAS DE DATOS */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .data-table th, .data-table td {
-            padding: 8px 10px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .data-table th {
-            color: var(--text-secondary);
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.5px;
-        }
-
-        .data-table td {
-            color: var(--text-primary);
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
-
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* CONTROL DE VOZ Y BOTÓN */
-        .voice-control {
+        .map-toolbar {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: auto;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+        }
+
+        .btn svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(15, 139, 141, 0.42);
+            background: #f8fbfc;
+        }
+
+        .btn-primary {
+            border-color: var(--teal);
+            background: var(--teal);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #0b7476;
+            color: #ffffff;
         }
 
         .btn-voice {
             width: 100%;
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            border: 1px solid var(--accent-cyan);
+            min-height: 44px;
+            border-color: var(--indigo);
+            background: var(--indigo);
             color: #ffffff;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
         }
 
         .btn-voice:hover {
-            background: linear-gradient(135deg, #38bdf8, #0284c7);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-            transform: translateY(-2px);
+            background: #31478e;
         }
 
-        /* CONSOLA DE ESTADO */
-        .console-box {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--surface-muted);
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status-chip[data-state="loading"] {
+            border-color: rgba(242, 165, 65, 0.42);
+            background: rgba(242, 165, 65, 0.14);
+            color: #9b610f;
+        }
+
+        .status-chip[data-state="ready"] {
+            border-color: rgba(33, 140, 116, 0.38);
+            background: rgba(33, 140, 116, 0.12);
+            color: var(--green);
+        }
+
+        .status-chip[data-state="error"] {
+            border-color: rgba(209, 73, 91, 0.42);
+            background: rgba(209, 73, 91, 0.12);
+            color: var(--rose);
+        }
+
+        .map-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 315px;
+            gap: 18px;
+            align-items: stretch;
+            min-width: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 525px;
+            min-height: 420px;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 12px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.8rem;
-            min-height: 80px;
+            background: #dfe7ef;
+            z-index: 1;
+        }
+
+        .summary-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .metric {
+            min-height: 86px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-muted);
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.73rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 7px;
+            color: var(--text);
+            font-size: 1.08rem;
+            line-height: 1.22;
+            word-break: break-word;
+        }
+
+        .metric strong.small {
+            font-size: 0.92rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+            min-width: 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 11px 0;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .data-table th {
+            width: 42%;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .data-table tr:last-child th,
+        .data-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .chart-box {
+            min-height: 278px;
+            min-width: 0;
+            overflow: hidden;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .chart-title {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            height: 215px;
+        }
+
+        .chart-canvas-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100%;
+        }
+
+        .side-stack {
+            display: grid;
+            gap: 18px;
+            align-content: start;
+        }
+
+        .server-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .server-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-muted);
+        }
+
+        .server-icon {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--indigo);
+            border: 1px solid var(--border);
+        }
+
+        .server-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .server-item strong,
+        .server-item span {
+            display: block;
+        }
+
+        .server-item strong {
+            font-size: 0.92rem;
+        }
+
+        .server-item span {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 0.81rem;
+        }
+
+        .port {
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .voice-control {
+            display: grid;
+            gap: 12px;
+        }
+
+        .console-box {
+            min-height: 118px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #17212b;
+            color: #eef4f8;
         }
 
         .status-pill {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 9px;
+            margin-bottom: 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            margin-bottom: 6px;
-            width: fit-content;
         }
 
-        .status-pill.idle { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
-        .status-pill.success { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .status-pill.error { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .status-pill.idle {
+            background: rgba(238, 244, 248, 0.13);
+            color: #ccd7df;
+        }
+
+        .status-pill.success {
+            background: rgba(33, 140, 116, 0.18);
+            color: #89e3cf;
+        }
+
+        .status-pill.error {
+            background: rgba(209, 73, 91, 0.18);
+            color: #ffb2be;
+        }
 
         .log-text {
-            color: var(--text-primary);
+            color: #ffffff;
+            line-height: 1.45;
             word-break: break-word;
+        }
+
+        .leaflet-container {
+            font: inherit;
+        }
+
+        @media (max-width: 1180px) {
+            .dashboard,
+            .content-grid,
+            .charts {
+                grid-template-columns: 1fr;
+            }
+
+            .map-layout {
+                grid-template-columns: 1fr;
+            }
+
+            #map {
+                height: 460px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .app-shell {
+                width: min(100% - 22px, 1420px);
+                padding-top: 16px;
+            }
+
+            .topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .team-card {
+                min-width: 0;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .map-toolbar {
+                width: 100%;
+            }
+
+            .map-toolbar .btn,
+            .map-toolbar .status-chip {
+                flex: 1 1 100%;
+            }
+
+            #map {
+                height: 380px;
+                min-height: 340px;
+            }
+
+            .server-item {
+                grid-template-columns: auto 1fr;
+            }
+
+            .port {
+                grid-column: 2;
+                width: fit-content;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <!-- ENCABEZADO INSTITUCIONAL -->
-        <header>
-            <div class="header-title">
-                <h1>Seguridad Informática - Examen Parcial 1</h1>
-                <h2>Universidad Politécnica de Pachuca</h2>
+    <div class="app-shell">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow"><i data-lucide="shield-check"></i> Seguridad Informática</div>
+                <h1>Georreferencia y Clima en Tiempo Real</h1>
+                <p class="subtitle">Universidad Politécnica de Pachuca · Examen Parcial 1</p>
             </div>
-            <div class="team-badge">
-                <div class="label">Integrantes del Proyecto</div>
-                <div class="names">Vanesa Galicia Camargo<br>Roxana Peñia Zamora</div>
+            <div class="team-card">
+                <span>Integrantes</span>
+                <strong>Vanesa Galicia Camargo<br>Roxana Peña Zamora</strong>
             </div>
         </header>
 
-        <!-- DASHBOARD GRID -->
-        <div class="dashboard-grid">
-            
-            <!-- PANEL 1: GEOLOCALIZACIÓN Y MAPA -->
-            <div class="panel">
+        <main class="dashboard">
+            <section class="panel map-panel">
                 <div class="panel-header">
-                    <span class="panel-title">Geolocalización GPS</span>
-                    <span style="font-size: 0.7rem; color: var(--accent-cyan); font-family: monospace;">CARTODB DARK</span>
+                    <h2 class="panel-title"><i data-lucide="map"></i> Punto de Captura</h2>
+                    <div class="map-toolbar">
+                        <span id="mapStatus" class="status-chip" data-state="loading">Preparando mapa</span>
+                        <button id="btnUbicacion" class="btn btn-primary" type="button" title="Usar ubicación actual">
+                            <i data-lucide="locate-fixed"></i>
+                            Mi ubicación
+                        </button>
+                    </div>
                 </div>
 
-                <!-- CONTENEDOR DEL MAPA -->
-                <div id="map"></div>
+                <div class="panel-body">
+                    <div class="map-layout">
+                        <div id="map" aria-label="Mapa interactivo de selección"></div>
 
-                <!-- TABLA DE DETALLES DE UBICACIÓN -->
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Parámetro</th>
-                            <th>Detalle de Red</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Coordenadas</td>
-                            <td id="val-coordenadas">Obteniendo GPS...</td>
-                        </tr>
-                        <tr>
-                            <td>Colonia / Zona</td>
-                            <td id="val-colonia">Buscando...</td>
-                        </tr>
-                        <tr>
-                            <td>Municipio</td>
-                            <td id="val-municipio">Buscando...</td>
-                        </tr>
-                        <tr>
-                            <td>Estado / País</td>
-                            <td id="val-estado">Buscando...</td>
-                        </tr>
-                        <tr>
-                            <td>Código Postal</td>
-                            <td id="val-cp">Buscando...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                        <aside class="summary-grid" aria-label="Resumen del punto seleccionado">
+                            <div class="metric">
+                                <span>Coordenadas</span>
+                                <strong id="val-coordenadas">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Municipio</span>
+                                <strong id="val-municipio">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Estado / País</span>
+                                <strong id="val-estado">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Clima</span>
+                                <strong id="val-resumen-clima">--</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Zona / CP</span>
+                                <strong id="val-zona-cp" class="small">--</strong>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="side-stack">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><i data-lucide="database"></i> Bases de Datos</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="server-list">
+                            <div class="server-item">
+                                <div class="server-icon"><i data-lucide="monitor"></i></div>
+                                <div>
+                                    <strong>Servidor 1</strong>
+                                    <span>Windows · SQL Server</span>
+                                </div>
+                                <div class="port">1433</div>
+                            </div>
+                            <div class="server-item">
+                                <div class="server-icon"><i data-lucide="terminal"></i></div>
+                                <div>
+                                    <strong>Servidor 2</strong>
+                                    <span>Ubuntu · PostgreSQL</span>
+                                </div>
+                                <div class="port">5432</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><i data-lucide="mic"></i> Envío por Voz</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="voice-control">
+                            <button id="btnVoz" class="btn btn-voice" type="button">
+                                <i data-lucide="audio-lines"></i>
+                                Capturar comando
+                            </button>
+
+                            <div class="console-box">
+                                <span id="statusPill" class="status-pill idle">Sistema en espera</span>
+                                <div id="logComando" class="log-text">Presione el botón para dictar instrucción.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <section class="content-grid">
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i data-lucide="table-properties"></i> Datos del Punto</h2>
+                </div>
+                <div class="panel-body">
+                    <table class="data-table">
+                        <tbody>
+                            <tr>
+                                <th>Colonia / Zona</th>
+                                <td id="val-colonia">--</td>
+                            </tr>
+                            <tr>
+                                <th>Municipio</th>
+                                <td id="tabla-municipio">--</td>
+                            </tr>
+                            <tr>
+                                <th>Estado / País</th>
+                                <td id="tabla-estado">--</td>
+                            </tr>
+                            <tr>
+                                <th>Código Postal</th>
+                                <td id="val-cp">--</td>
+                            </tr>
+                            <tr>
+                                <th>Fecha / Hora</th>
+                                <td id="val-fechahora">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i data-lucide="activity"></i> Telemetría Ambiental</h2>
+                </div>
+                <div class="panel-body">
+                    <table class="data-table">
+                        <tbody>
+                            <tr>
+                                <th>Temperatura</th>
+                                <td id="val-temp">-- °C</td>
+                            </tr>
+                            <tr>
+                                <th>Humedad Relativa</th>
+                                <td id="val-humedad">-- %</td>
+                            </tr>
+                            <tr>
+                                <th>Velocidad Viento</th>
+                                <td id="val-viento">-- km/h</td>
+                            </tr>
+                            <tr>
+                                <th>Última selección</th>
+                                <td id="val-fuente">Mapa</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <section class="panel" style="margin-top: 18px;">
+            <div class="panel-header">
+                <h2 class="panel-title"><i data-lucide="bar-chart-3"></i> Gráficas</h2>
             </div>
-
-            <!-- PANEL 2: TELEMETRÍA AMBIENTAL -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Telemetría Ambiental</span>
-                    <span style="font-size: 0.7rem; color: var(--accent-cyan); font-family: monospace;">OPEN-METEO API</span>
-                </div>
-
-                <!-- ANIMACIÓN RADAR -->
-                <div class="weather-visualizer">
-                    <div class="radar-circle"></div>
-                    <div class="radar-circle"></div>
-                    <div class="radar-circle"></div>
-                    <div class="weather-orb"></div>
-                </div>
-
-                <!-- TABLA DE CLIMA -->
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Variable</th>
-                            <th>Medición Actual</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Temperatura</td>
-                            <td id="val-temp">-- °C</td>
-                        </tr>
-                        <tr>
-                            <td>Humedad Relativa</td>
-                            <td id="val-humedad">-- %</td>
-                        </tr>
-                        <tr>
-                            <td>Velocidad Viento</td>
-                            <td id="val-viento">-- km/h</td>
-                        </tr>
-                        <tr>
-                            <td>Fecha / Hora</td>
-                            <td id="val-fechahora">--</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- PANEL 3: ALMACENAMIENTO Y RECONOCIMIENTO DE VOZ -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Control Distribución</span>
-                    <span style="font-size: 0.7rem; color: var(--accent-green); font-family: monospace;">AZURE VM CLOUD</span>
-                </div>
-
-                <!-- TABLA DE NODOS -->
-                <table class="data-table" style="margin-bottom: 15px;">
-                    <thead>
-                        <tr>
-                            <th>Nodo</th>
-                            <th>Sistema / BD</th>
-                            <th>Puerto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Servidor 1</td>
-                            <td>Windows / SQL Server</td>
-                            <td>1433</td>
-                        </tr>
-                        <tr>
-                            <td>Servidor 2</td>
-                            <td>Ubuntu / PostgreSQL</td>
-                            <td>5432</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- CONTROL DE VOZ -->
-                <div class="voice-control">
-                    <button id="btnVoz" class="btn-voice">Capturar Comando de Voz</button>
-
-                    <div class="console-box">
-                        <span id="statusPill" class="status-pill idle">Sistema en Espera</span>
-                        <div id="logComando" class="log-text">Presione el botón para dictar instrucción...</div>
+            <div class="panel-body">
+                <div class="charts">
+                    <div class="chart-box">
+                        <div class="chart-title">Lectura actual <span>Temp · Humedad · Viento</span></div>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="weatherChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-title">Historial de puntos <span>Últimas selecciones</span></div>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="historyChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-
-        </div>
+        </section>
     </div>
 
-    <!-- LEAFLET MAPS JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- LÓGICA COMPLETA DE APLICACIÓN -->
     <script>
-        let map, marker;
+        const puntoInicial = {
+            latitud: 20.116541,
+            longitud: -98.741321
+        };
+
+        let map;
+        let marker;
+        let weatherChart;
+        let historyChart;
+        const historialClima = [];
 
         let datosClima = {
             usuario: 'vanesa_roxana',
@@ -448,81 +783,293 @@
             materno: 'Camargo',
             estado: 'Hidalgo',
             municipio: 'Pachuca de Soto',
-            latitud: 20.116541,
-            longitud: -98.741321,
+            latitud: puntoInicial.latitud,
+            longitud: puntoInicial.longitud,
             temperatura: 0,
             humedad: 0,
             viento: '0 km/h'
         };
 
-        // Inicializar Mapa estilo Oscuro (CartoDB Dark Matter)
-        function initMap(lat, lon) {
-            map = L.map('map').setView([lat, lon], 14);
+        const $ = (id) => document.getElementById(id);
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
+        function setMapStatus(texto, estado = 'ready') {
+            const mapStatus = $('mapStatus');
+            mapStatus.innerText = texto;
+            mapStatus.dataset.state = estado;
+        }
+
+        function formatNumber(value, decimals = 2) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number.toFixed(decimals) : '--';
+        }
+
+        function updateCoordinates(lat, lon) {
+            $('val-coordenadas').innerText = `${formatNumber(lat, 5)}, ${formatNumber(lon, 5)}`;
+        }
+
+        function initMap(lat, lon) {
+            map = L.map('map', {
+                zoomControl: true
+            }).setView([lat, lon], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
 
-            marker = L.marker([lat, lon]).addTo(map)
-                .bindPopup('Ubicación de Transmisión')
-                .openPopup();
+            marker = L.marker([lat, lon], {
+                draggable: true,
+                title: 'Punto seleccionado'
+            }).addTo(map);
+
+            marker.on('dragend', () => {
+                const position = marker.getLatLng();
+                actualizarPunto(position.lat, position.lng, 'Marcador');
+            });
+
+            map.on('click', (event) => {
+                actualizarPunto(event.latlng.lat, event.latlng.lng, 'Mapa');
+            });
         }
 
-        // Obtener Geolocalización GPS y Datos Nominatim + Open-Meteo
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            datosClima.latitud = pos.coords.latitude;
-            datosClima.longitud = pos.coords.longitude;
+        function updateMarker(lat, lon) {
+            const selectedPoint = [lat, lon];
+            marker.setLatLng(selectedPoint);
+            marker.bindPopup(`Punto seleccionado<br>${formatNumber(lat, 5)}, ${formatNumber(lon, 5)}`).openPopup();
+            map.panTo(selectedPoint);
+        }
 
-            document.getElementById('val-coordenadas').innerText = `${datosClima.latitud.toFixed(4)}, ${datosClima.longitud.toFixed(4)}`;
-
-            // Inicializar el mapa interactivo
-            initMap(datosClima.latitud, datosClima.longitud);
-
-            // 1. Geocodificación Inversa (Detalles de Dirección Exacta)
-            try {
-                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${datosClima.latitud}&lon=${datosClima.longitud}`);
-                const geoData = await geoRes.json();
-                const addr = geoData.address || {};
-
-                datosClima.municipio = addr.city || addr.town || addr.suburb || 'Pachuca de Soto';
-                datosClima.estado = addr.state || 'Hidalgo';
-
-                document.getElementById('val-colonia').innerText = addr.neighbourhood || addr.suburb || addr.residential || 'Zona Detectada';
-                document.getElementById('val-municipio').innerText = datosClima.municipio;
-                document.getElementById('val-estado').innerText = `${datosClima.estado}, ${addr.country_code ? addr.country_code.toUpperCase() : 'MX'}`;
-                document.getElementById('val-cp').innerText = addr.postcode || 'C.P. Detectado';
-            } catch (e) {
-                document.getElementById('val-municipio').innerText = datosClima.municipio;
-                document.getElementById('val-estado').innerText = datosClima.estado;
+        async function cargarDireccion(lat, lon) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=es`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('No se pudo consultar la dirección.');
             }
 
-            // 2. API Clima Open-Meteo
-            try {
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${datosClima.latitud}&longitude=${datosClima.longitud}&current=temperature_2m,relative_humidity_2m,wind_speed_10m`);
-                const data = await res.json();
+            const geoData = await response.json();
+            const addr = geoData.address || {};
+            const municipio = addr.city || addr.town || addr.municipality || addr.county || addr.suburb || 'Sin dato';
+            const estado = addr.state || 'Sin dato';
+            const pais = addr.country_code ? addr.country_code.toUpperCase() : (addr.country || 'MX');
+            const colonia = addr.neighbourhood || addr.suburb || addr.quarter || addr.city_district || addr.residential || 'Sin dato';
+            const cp = addr.postcode || 'Sin dato';
 
-                datosClima.temperatura = data.current.temperature_2m;
-                datosClima.humedad = data.current.relative_humidity_2m;
-                datosClima.viento = `${data.current.wind_speed_10m} km/h`;
+            datosClima.municipio = municipio;
+            datosClima.estado = estado;
 
-                document.getElementById('val-temp').innerText = `${datosClima.temperatura} °C`;
-                document.getElementById('val-humedad').innerText = `${datosClima.humedad} %`;
-                document.getElementById('val-viento').innerText = datosClima.viento;
-                document.getElementById('val-fechahora').innerText = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            } catch (e) {
-                document.getElementById('val-temp').innerText = "Error API";
+            $('val-colonia').innerText = colonia;
+            $('val-municipio').innerText = municipio;
+            $('tabla-municipio').innerText = municipio;
+            $('val-estado').innerText = `${estado}, ${pais}`;
+            $('tabla-estado').innerText = `${estado}, ${pais}`;
+            $('val-cp').innerText = cp;
+            $('val-zona-cp').innerText = `${colonia} · ${cp}`;
+        }
+
+        async function cargarClima(lat, lon) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('No se pudo consultar el clima.');
             }
-        }, (err) => {
-            document.getElementById('val-coordenadas').innerText = "Acceso a GPS Denegado";
-            // Mapa por defecto en Pachuca
-            initMap(20.116541, -98.741321);
-        });
 
-        const btnVoz = document.getElementById('btnVoz');
-        const statusPill = document.getElementById('statusPill');
-        const logComando = document.getElementById('logComando');
+            const data = await response.json();
+            const current = data.current || {};
+            datosClima.temperatura = Number(current.temperature_2m || 0);
+            datosClima.humedad = Number(current.relative_humidity_2m || 0);
+            datosClima.viento = `${current.wind_speed_10m || 0} km/h`;
 
+            $('val-temp').innerText = `${formatNumber(datosClima.temperatura, 1)} °C`;
+            $('val-humedad').innerText = `${formatNumber(datosClima.humedad, 0)} %`;
+            $('val-viento').innerText = datosClima.viento;
+            $('val-resumen-clima').innerText = `${formatNumber(datosClima.temperatura, 1)} °C · ${formatNumber(datosClima.humedad, 0)}% HR`;
+            $('val-fechahora').innerText = new Date().toLocaleString('es-MX', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: 'short'
+            });
+
+            registrarHistorial();
+            updateCharts();
+        }
+
+        function registrarHistorial() {
+            historialClima.push({
+                etiqueta: `${formatNumber(datosClima.latitud, 2)}, ${formatNumber(datosClima.longitud, 2)}`,
+                temperatura: datosClima.temperatura,
+                humedad: datosClima.humedad,
+                viento: Number(String(datosClima.viento).replace(' km/h', '')) || 0
+            });
+
+            if (historialClima.length > 7) {
+                historialClima.shift();
+            }
+        }
+
+        async function actualizarPunto(lat, lon, fuente = 'Mapa') {
+            datosClima.latitud = lat;
+            datosClima.longitud = lon;
+            $('val-fuente').innerText = fuente;
+            updateCoordinates(lat, lon);
+            updateMarker(lat, lon);
+            setMapStatus('Consultando datos', 'loading');
+
+            const resultados = await Promise.allSettled([
+                cargarDireccion(lat, lon),
+                cargarClima(lat, lon)
+            ]);
+
+            const fallos = resultados.filter((result) => result.status === 'rejected');
+
+            if (fallos.length === 0) {
+                setMapStatus('Punto actualizado', 'ready');
+                return;
+            }
+
+            setMapStatus('Datos parciales', 'error');
+            if (resultados[0].status === 'rejected') {
+                $('val-colonia').innerText = 'Sin respuesta';
+                $('val-zona-cp').innerText = 'Sin respuesta';
+            }
+            if (resultados[1].status === 'rejected') {
+                $('val-resumen-clima').innerText = 'Sin respuesta';
+            }
+        }
+
+        function initCharts() {
+            Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
+            Chart.defaults.color = '#617080';
+
+            weatherChart = new Chart($('weatherChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Temperatura °C', 'Humedad %', 'Viento km/h'],
+                    datasets: [{
+                        label: 'Lectura actual',
+                        data: [0, 0, 0],
+                        backgroundColor: ['#0f8b8d', '#4059ad', '#f2a541'],
+                        borderRadius: 6,
+                        maxBarThickness: 56
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e7edf3' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            historyChart = new Chart($('historyChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Temperatura',
+                            data: [],
+                            borderColor: '#0f8b8d',
+                            backgroundColor: 'rgba(15, 139, 141, 0.1)',
+                            tension: 0.32,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Humedad',
+                            data: [],
+                            borderColor: '#4059ad',
+                            backgroundColor: 'rgba(64, 89, 173, 0.1)',
+                            tension: 0.32,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Viento',
+                            data: [],
+                            borderColor: '#f2a541',
+                            backgroundColor: 'rgba(242, 165, 65, 0.12)',
+                            tension: 0.32,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, boxHeight: 12 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e7edf3' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxRotation: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            const vientoActual = Number(String(datosClima.viento).replace(' km/h', '')) || 0;
+
+            weatherChart.data.datasets[0].data = [
+                datosClima.temperatura,
+                datosClima.humedad,
+                vientoActual
+            ];
+            weatherChart.update();
+
+            historyChart.data.labels = historialClima.map((item, index) => `P${index + 1}`);
+            historyChart.data.datasets[0].data = historialClima.map((item) => item.temperatura);
+            historyChart.data.datasets[1].data = historialClima.map((item) => item.humedad);
+            historyChart.data.datasets[2].data = historialClima.map((item) => item.viento);
+            historyChart.update();
+        }
+
+        function solicitarUbicacionActual() {
+            if (!navigator.geolocation) {
+                setMapStatus('GPS no disponible', 'error');
+                actualizarPunto(puntoInicial.latitud, puntoInicial.longitud, 'Pachuca');
+                return;
+            }
+
+            setMapStatus('Buscando GPS', 'loading');
+            navigator.geolocation.getCurrentPosition((pos) => {
+                actualizarPunto(pos.coords.latitude, pos.coords.longitude, 'GPS');
+            }, () => {
+                setMapStatus('GPS denegado', 'error');
+                actualizarPunto(puntoInicial.latitud, puntoInicial.longitud, 'Pachuca');
+            }, {
+                enableHighAccuracy: true,
+                timeout: 9000,
+                maximumAge: 60000
+            });
+        }
+
+        const btnVoz = $('btnVoz');
+        const statusPill = $('statusPill');
+        const logComando = $('logComando');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (SpeechRecognition) {
@@ -531,9 +1078,9 @@
 
             btnVoz.addEventListener('click', () => {
                 recognition.start();
-                statusPill.className = "status-pill idle";
-                statusPill.innerText = "Escuchando...";
-                logComando.innerText = "Sintonizando micrófono...";
+                statusPill.className = 'status-pill idle';
+                statusPill.innerText = 'Escuchando';
+                logComando.innerText = 'Sintonizando micrófono.';
             });
 
             recognition.onresult = (event) => {
@@ -543,15 +1090,17 @@
             };
 
             recognition.onerror = () => {
-                statusPill.className = "status-pill error";
-                statusPill.innerText = "Error de Entrada";
-                logComando.innerText = "No se detectó señal de audio clara.";
+                statusPill.className = 'status-pill error';
+                statusPill.innerText = 'Error de entrada';
+                logComando.innerText = 'No se detectó señal de audio clara.';
             };
         } else {
-            alert("Navegador no compatible. Utilice Google Chrome.");
+            btnVoz.disabled = true;
+            statusPill.className = 'status-pill error';
+            statusPill.innerText = 'Sin soporte';
+            logComando.innerText = 'El navegador no tiene reconocimiento de voz compatible.';
         }
 
-        // Procesar Comando y POST a Backend
         async function procesarComando(texto) {
             let endpoint = '';
             const t = texto.toLowerCase();
@@ -561,9 +1110,9 @@
             } else if (t.includes('2') || t.includes('dos') || t.includes('linux') || t.includes('ubuntu') || t.includes('servidor 2') || t.includes('server 2')) {
                 endpoint = '/api/guardar/ubuntu';
             } else {
-                statusPill.className = "status-pill error";
-                statusPill.innerText = "Comando Desconocido";
-                logComando.innerText = `Instrucción no válida: "${texto}". Ordene 'Guardar en servidor uno' o 'Guardar en servidor dos'.`;
+                statusPill.className = 'status-pill error';
+                statusPill.innerText = 'Comando desconocido';
+                logComando.innerText = `Instrucción no válida: "${texto}". Ordene "Guardar en servidor uno" o "Guardar en servidor dos".`;
                 return;
             }
 
@@ -576,20 +1125,28 @@
 
                 const result = await res.json();
                 if (result.status === 'success') {
-                    statusPill.className = "status-pill success";
-                    statusPill.innerText = "Transacción Exitosa";
+                    statusPill.className = 'status-pill success';
+                    statusPill.innerText = 'Transacción exitosa';
                     logComando.innerText = `Registro almacenado correctamente en: ${result.server}`;
                 } else {
-                    statusPill.className = "status-pill error";
-                    statusPill.innerText = "Fallo en BD";
+                    statusPill.className = 'status-pill error';
+                    statusPill.innerText = 'Fallo en BD';
                     logComando.innerText = `Error reportado por el servidor: ${result.error || 'Sin conexión'}`;
                 }
             } catch (err) {
-                statusPill.className = "status-pill error";
-                statusPill.innerText = "Error de Red";
-                logComando.innerText = "Imposible conectar con el servicio Backend local.";
+                statusPill.className = 'status-pill error';
+                statusPill.innerText = 'Error de red';
+                logComando.innerText = 'Imposible conectar con el servicio backend local.';
             }
         }
+
+        $('btnUbicacion').addEventListener('click', solicitarUbicacionActual);
+
+        lucide.createIcons();
+        initMap(puntoInicial.latitud, puntoInicial.longitud);
+        initCharts();
+        actualizarPunto(puntoInicial.latitud, puntoInicial.longitud, 'Pachuca');
+        solicitarUbicacionActual();
     </script>
 </body>
 </html>
